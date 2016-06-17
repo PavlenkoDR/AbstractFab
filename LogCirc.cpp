@@ -10,11 +10,21 @@ void LogCirc::Graph::printHandLast()
 LogVect LogCirc::Graph::run_rec()
 {
 	LogVect tmp;
+	t_vector::iterator tmpfirst;
+	std::vector<int> tmpsecond;
 	if ((front.size() != 0)&&(handLast.size() == 0))
-		for (std::list<t_vector::iterator>::iterator i = front.begin(); i != front.end(); i++)
+		for (std::map<t_vector::iterator, std::vector<int> >::iterator i = front.begin(); i != front.end(); i++)
 		{
-			tmp =  (**i).run_rec();
-			handLast.insert(handLast.end(), tmp.begin(), tmp.end());
+			tmpfirst = (*i).first;
+			tmp =  (*tmpfirst).run_rec();
+			tmpsecond = (*i).second;
+			if (tmpsecond.size() == 0)
+				handLast.insert(handLast.end(), tmp.begin(), tmp.end());
+			else
+				for (std::vector<int>::iterator j = tmpsecond.begin(); j < tmpsecond.end(); j++)
+				{
+					handLast.push_back(tmp[*j]);
+				}
 		}
 	(*hand).run(handLast);
 	/*
@@ -45,10 +55,20 @@ void LogCirc::PrintGraph()
 			std::cout << (*j) << " ";
 		std::cout << std::endl;
 		std::cout << "\tFront   : ";
-		for (std::list<t_vector::iterator>::iterator j = (*i).front.begin(); j != (*i).front.end(); j++)
+		t_vector::iterator tmpfirst;
+		std::vector<int> tmpsecond;
+		for (std::map<t_vector::iterator, std::vector<int> >::iterator j = (*i).front.begin(); j != (*i).front.end(); j++)
 		{
-			tmp = (**j).hand;
-			std::cout << LogFact::getTypeString(tmp) << "(" << (*tmp).getNextVect()[0] << ") ";
+			tmpfirst = (*j).first;
+			tmpsecond = (*j).second;
+			tmp = (*tmpfirst).hand;
+			std::cout << LogFact::getTypeString(tmp) << "(";// << (*tmp).getNextVect()[0] << ") ";
+			if (tmpsecond.size() == 0)
+				for (int m = 0; m < (*tmp).numNextPort(); m++)
+					std::cout << (*tmp).getNextVect()[m] << " ";
+			else
+				for (std::vector<int>::iterator m = tmpsecond.begin(); m < tmpsecond.end(); m++)
+					std::cout << (*tmp).getNextVect()[*m];
 
 		}
 		std::cout << std::endl;
@@ -98,9 +118,23 @@ void LogCirc::clear()
 	{
 		(*i).handLast.clear();
 		LogGateHand tmp = (*i).hand;
-		if ((*tmp).numLastPort() > (*i).front.size())
+		t_vector::iterator tmpfirst;
+		LogGateHand tmphand;
+		int size = 0;
+		for (std::map<t_vector::iterator, std::vector<int> >::iterator j = (*i).front.begin(); j != (*i).front.end(); j++)
 		{
-			for (int j = 0; j < (*tmp).numLastPort() - (*i).front.size(); j++)
+			tmpfirst = (*j).first;
+			if ((*j).second.size() == 0)
+			{
+				tmphand = (*tmpfirst).hand;
+				size+=(*tmphand).numNextPort();
+			}
+			else
+				size+=(*j).second.size();
+		}
+		if ((*tmp).numLastPort() > size)
+		{
+			for (int j = 0; j < (*tmp).numLastPort() - size; j++)
 			{
 				if (k < Last.size())
 				{
@@ -146,17 +180,42 @@ void LogCirc::run(const LogVect &v) {
 	run();
 }
 
+void LogCirc::bind(int entrance, int exit, std::vector<int> entrance_ports)
+{
+	if ((entrance < LogVecLast.size())&&(exit < LogVecLast.size()))
+	{
+
+		LogGateHand tmp = LogVecLast[exit].hand;
+		if ((*tmp).numLastPort() > LogVecLast[exit].front.size())
+		{
+			LogVecLast[entrance].back.push_back(LogVecLast.begin()+exit);
+			LogVecLast[exit].front.insert(std::make_pair(LogVecLast.begin()+entrance, entrance_ports));
+			numLastPort();
+			numNextPort();
+		}
+		else
+			std::cout << entrance << " and " << exit << " not bind" << std::endl;
+	}
+	else
+		std::cout << entrance << " and " << exit << " not bind" << std::endl;
+}
+
 void LogCirc::bind(int entrance, int exit)
 {
 	LogGateHand tmp = LogVecLast[exit].hand;
 	if ((entrance < LogVecLast.size())&&(exit < LogVecLast.size()))
-	if ((*tmp).numLastPort() > LogVecLast[exit].front.size())
 	{
-		LogVecLast[entrance].back.push_back(LogVecLast.begin()+exit);
-		LogVecLast[exit].front.push_back(LogVecLast.begin()+entrance);
+		if ((*tmp).numLastPort() > LogVecLast[exit].front.size())
+		{
+			LogVecLast[entrance].back.push_back(LogVecLast.begin()+exit);
+			LogVecLast[exit].front.insert(std::make_pair(LogVecLast.begin()+entrance, std::vector<int>()));
+			numLastPort();
+			numNextPort();
+		}
+		else
+			std::cout << entrance << " and " << exit << " not bind" << std::endl;
+
 	}
-	else
-		std::cout << entrance << " and " << exit << " not bind" << std::endl;
 	else
 		std::cout << entrance << " and " << exit << " not bind" << std::endl;
 }
@@ -167,7 +226,9 @@ void LogCirc::unbind(int entrance, int exit)
 	if ((entrance < LogVecLast.size())&&(exit < LogVecLast.size()))
 	{
 		LogVecLast[entrance].back.remove(LogVecLast.begin()+exit);
-		LogVecLast[exit].front.remove(LogVecLast.begin()+entrance);
+		LogVecLast[exit].front.erase(LogVecLast.begin()+entrance);
+		numLastPort();
+		numNextPort();
 	}
 	else
 		std::cout << entrance << " and " << exit << " not bind" << std::endl;
@@ -176,8 +237,14 @@ void LogCirc::unbind(int entrance, int exit)
 void LogCirc::del(int entrance)
 {
 	for (std::list<t_vector::iterator>::iterator i = LogVecLast[entrance].back.begin(); i != LogVecLast[entrance].back.end(); i++)
-		(**i).front.remove(LogVecLast.begin()+entrance);
-	for (std::list<t_vector::iterator>::iterator i = LogVecLast[entrance].front.begin(); i != LogVecLast[entrance].front.end(); i++)
-		(**i).back.remove(LogVecLast.begin()+entrance);
+		(**i).front.erase(LogVecLast.begin()+entrance);
+	t_vector::iterator tmpp;
+	for (std::map<t_vector::iterator, std::vector<int> >::iterator i = LogVecLast[entrance].front.begin(); i != LogVecLast[entrance].front.end(); i++)
+	{
+		tmpp = (*i).first;
+		(*tmpp).back.remove(LogVecLast.begin()+entrance);
+	}
 	LogVecLast.erase(LogVecLast.begin() + entrance);
+	numLastPort();
+	numNextPort();
 }

@@ -33,6 +33,9 @@ LogGateHand LogFact::NewGate(int type)
    case CIRC:
        hand = std::make_shared<LogCirc>();
        break;
+   case FICT:
+       hand = std::make_shared<LogGate_FICT>();
+       break;
    }
    listGate[type].insert(hand);
    return hand;
@@ -44,35 +47,48 @@ void LogFact::del(LogGateHand &hand)
 	if (typeid(*hand) == typeid(LogGate_NOT)){
 			listGate[NOT].erase(hand);
 			NumGate--;
-			hand = NULL;}
+			hand = NULL;
+	}
 	else if (typeid(*hand) == typeid(LogGate_OR)){
 		listGate[OR].erase(hand);
 		NumGate--;
-		hand = NULL;}
+		hand = NULL;
+	}
 	else if (typeid(*hand) == typeid(LogGate_AND)){
 		listGate[AND].erase(hand);
 		NumGate--;
-		hand = NULL;}
+		hand = NULL;
+	}
 	else if (typeid(*hand) == typeid(LogGate_XOR)){
 		listGate[XOR].erase(hand);
 		NumGate--;
-		hand = NULL;}
+		hand = NULL;
+	}
 	else if (typeid(*hand) == typeid(LogGate_NOR)){
 		listGate[NOR].erase(hand);
 		NumGate--;
-		hand = NULL;}
+		hand = NULL;
+	}
 	else if (typeid(*hand) == typeid(LogGate_NAND)){
 		listGate[NAND].erase(hand);
 		NumGate--;
-		hand = NULL;}
+		hand = NULL;
+	}
 	else if (typeid(*hand) == typeid(LogGate_XNOR)){
 		listGate[XNOR].erase(hand);
 		NumGate--;
-		hand = NULL;}
+		hand = NULL;
+	}
 	else if (typeid(*hand) == typeid(LogCirc)){
 		listGate[CIRC].erase(hand);
 		NumGate--;
-		hand = NULL;}
+		hand = NULL;
+	}
+	else if (typeid(*hand) == typeid(LogGate_FICT)){
+		listGate[FICT].erase(hand);
+		NumGate--;
+		hand = NULL;
+	}
 	hand = NULL;
 }
 
@@ -87,6 +103,7 @@ int LogFact::getType(LogGateHand &hand)
 	else if (typeid(*hand) == typeid(LogGate_NAND))	{result = NAND;}
 	else if (typeid(*hand) == typeid(LogGate_XNOR))	{result = XNOR;}
 	else if (typeid(*hand) == typeid(LogCirc))		{result = CIRC;}
+	else if (typeid(*hand) == typeid(LogGate_FICT))	{result = FICT; }
 	return result;
 }
 
@@ -119,6 +136,9 @@ std::string LogFact::getTypeString(LogGateHand &hand)
 	case(CIRC):
 			result = "CIRC";
 			break;
+	case(FICT):
+			result = "FICT";
+			break;
 	}
 	return result;
 }
@@ -133,4 +153,5 @@ void LogFact::printType(LogGateHand &hand)
 	else if (typeid(*hand) == typeid(LogGate_NAND)){std::cout << "Type: NAND" << std::endl;}
 	else if (typeid(*hand) == typeid(LogGate_XNOR)){std::cout << "Type: XNOR" << std::endl;}
 	else if (typeid(*hand) == typeid(LogCirc))	   {std::cout << "Type: CIRC" << std::endl;}
+	else if (typeid(*hand) == typeid(LogGate_FICT))	   {std::cout << "Type: FICT" << std::endl;}
 }

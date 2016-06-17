@@ -5,6 +5,7 @@
 #include <vector>
 #include <set>
 #include <list>
+#include <map>
 #include <iostream>
 #include <iterator>
 
@@ -18,8 +19,9 @@ const int NOR = 4;
 const int NAND = 5;
 const int XNOR = 6;
 const int CIRC = 7;
+const int FICT = 8;
 
-const int LOGS = 8;
+const int LOGS = 9;
 
 /***********************	LogGate		***************************/
 
@@ -51,6 +53,12 @@ struct LogGate_NOT: public LogGate
 {
     inline 		LogGate_NOT () 	{ Last.resize(1); Next.resize(1); }  //Ограничить количество входных сигналов до 1. Выходных до 1.
     inline void	run () 			{ Next[0] = !Last[0]; }
+};
+
+struct LogGate_FICT: public LogGate
+{
+    inline 		LogGate_FICT () 	{ Last.resize(1); Next.resize(1); }  //Ограничить количество входных сигналов до 1. Выходных до 1.
+    inline void	run () 			{ Next[0] = Last[0]; }
 };
 
 struct LogGate_OR: public LogGate
@@ -144,7 +152,7 @@ class LogCirc : public LogGate
 	public:
 		LogGateHand hand;
 		std::list<t_vector::iterator> back;
-		std::list<t_vector::iterator> front;
+		std::map<t_vector::iterator, std::vector<int> > front;
 		LogVect handLast;
 		void printHandLast();
 		LogVect run_rec();
@@ -152,6 +160,12 @@ class LogCirc : public LogGate
 	};
 	t_vector LogVecLast;
 public:
+	static void copy(LogCirc &a, LogCirc &b)
+	{
+		a.Last = b.Last;
+		a.Next = b.Next;
+		a.LogVecLast = b.LogVecLast;
+	}
 	void PrintGraph();
 	long numLastPort();
 	long numNextPort();
@@ -161,12 +175,17 @@ public:
 	inline void addGate(LogGateHand &h)
 	{
 		LogVecLast.push_back(Graph(h));
+		numLastPort();
+		numNextPort();
 	}
 	inline void addGate(int type)
 	{
 		LogGateHand tmp = LogFact::NewGate(type);
 		LogVecLast.push_back(Graph(tmp));
+		numLastPort();
+		numNextPort();
 	}
+	void bind(int entrance, int exit, std::vector<int> entrance_ports);
 	void bind(int entrance, int exit);
 	void unbind(int entrance, int exit);
 	void del(int entrance);
