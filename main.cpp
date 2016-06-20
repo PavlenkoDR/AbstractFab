@@ -11,30 +11,11 @@ int main()
     LogGateHand h3 = LogFact::NewGate(NOT);
     LogGateHand h4 = LogFact::NewGate(CIRC);
     LogVect tmp;
-    //LogCirc *sheme = dynamic_cast<LogCirc *> (h4.get());//->get();
-    /*
-    LogCirc &sheme = dynamic_cast<LogCirc&> (*h4);
-    sheme.addGate(FICT); //0
-    sheme.addGate(FICT);  //1
-    sheme.addGate(XOR); //2
-    sheme.addGate(AND);  //3
-    //sheme.addGate(h2);
-    std::cout << "Sheme size: " << sheme.size() << std::endl;
-    tmp.push_back(0);
-    tmp.push_back(0);
-    sheme.bind(0, 2);
-    sheme.bind(1, 2);
-    sheme.bind(0, 3);
-    sheme.bind(1, 3);
-    sheme.run(tmp);
-    sheme.PrintGraph();
-	*/
-    //====================================================
-
-    LogGateHand summator[8];
-    for (int i = 0; i < 8; i++)
-    	summator[i] = LogFact::NewGate(CIRC);
-    LogCirc &temp = dynamic_cast<LogCirc&> (*summator[0]);
+    LogGateHand summator, sheme;
+    summator = LogFact::NewGate(CIRC);
+    sheme = LogFact::NewGate(CIRC);
+    LogCirc &temp = dynamic_cast<LogCirc&> (*summator);
+    LogCirc &temp1 = dynamic_cast<LogCirc&> (*sheme);
     temp.addGate(FICT);//0
     temp.addGate(FICT);//1
     temp.addGate(FICT);//2
@@ -43,23 +24,55 @@ int main()
     temp.addGate(AND); //5
     temp.addGate(AND); //6
     temp.addGate(OR);  //7
-    temp.bind(0, 3);
-    temp.bind(1, 3);
-    temp.bind(0, 5);
-    temp.bind(1, 5);
     temp.bind(3, 4);
     temp.bind(2, 4);
     temp.bind(3, 6);
     temp.bind(2, 6);
-    temp.bind(5, 7);
-    temp.bind(6, 7);
+    temp.bind(4, 5);
+    temp.bind(1, 5);
+    temp.bind(4, 7);
+    temp.bind(1, 7);
+    temp.bind(6, 8);
+    temp.bind(7, 8);
+    tmp.push_back(0);//Начальное смещение
     tmp.push_back(1);
     tmp.push_back(1);
     tmp.push_back(0);
-    temp.run(tmp);
-    cout << "Solve(" << temp.numNextPort() << "): ";
-    for (int i = 0; i < temp.numNextPort(); i++)
-    	cout << temp.getNextVect()[i] << " ";
+    tmp.push_back(1);
+    tmp.push_back(1);
+    tmp.push_back(1);
+    tmp.push_back(1);
+    tmp.push_back(1);
+    tmp.push_back(1);
+    tmp.push_back(1);
+    tmp.push_back(1);
+    tmp.push_back(1);
+    tmp.push_back(1);
+    tmp.push_back(1);
+    tmp.push_back(1);
+    tmp.push_back(1);
+    temp1.addGate(summator);
+    temp1.addGate(summator);
+    temp1.addGate(summator);
+    temp1.addGate(summator);
+    temp1.addGate(summator);
+    temp1.addGate(summator);
+    temp1.addGate(summator);
+    temp1.addGate(summator);
+    //temp1.bind(1, 2);
+    //temp1.bind(2, 3);
+    temp1.bind(1, 2, 1, 2);
+    temp1.bind(2, 3, 1, 2);
+    temp1.bind(3, 4, 1, 2);
+    temp1.bind(4, 5, 1, 2);
+    temp1.bind(5, 6, 1, 2);
+    temp1.bind(6, 7, 1, 2);
+    temp1.bind(7, 8, 1, 2);
+    temp1.run(tmp);
+    temp1.PrintGraph("");
+    cout << "Solve(" << temp1.numNextPort() << "): ";
+    for (int i = 0; i < temp1.numNextPort(); i++)
+    	cout << temp1.getNextVect()[i] << " ";
     cout << endl;
     std::cout << "Done!" << std::endl;
     return 0;

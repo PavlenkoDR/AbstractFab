@@ -3,6 +3,7 @@
 size_t LogFact::NumGate = 0;
 std::set<LogGateHand> LogFact::listGate[LOGS];
 
+
 LogGateHand LogFact::NewGate(int type)
 {
    NumGate++;

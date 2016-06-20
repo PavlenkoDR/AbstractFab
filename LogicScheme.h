@@ -8,6 +8,7 @@
 #include <map>
 #include <iostream>
 #include <iterator>
+#include <stdarg.h>
 
 typedef std::vector<bool> LogVect;
 
@@ -32,7 +33,7 @@ protected:
 	LogVect Next;
 
 public:
-	inline 	void 	run (const LogVect &v) 			{if (v.size() != numLastPort()) return; Last = v; run(); }
+	inline 	void 	run (const LogVect &v) 			{if (v.size() != numLastPort()) throw 0; Last = v; run(); }
 	virtual void 	run() = 0;
 
 	inline long 	numLastPort() 					{ return Last.size(); }
@@ -147,47 +148,50 @@ class LogCirc : public LogGate
 	*/
 	class Graph;
 	typedef std::vector<Graph> t_vector;
+	typedef std::map<t_vector::iterator, std::vector<int> > t_map;
 	class Graph
 	{
-	public:
+	private:
+		friend class LogCirc;
+		bool fool;
 		LogGateHand hand;
 		std::list<t_vector::iterator> back;
-		std::map<t_vector::iterator, std::vector<int> > front;
+		t_map front;
+		int sizefront();
+		int sizeback();
 		LogVect handLast;
+		LogVect handNext;
 		void printHandLast();
 		LogVect run_rec();
 		inline Graph(LogGateHand &h):hand(h){}
 	};
+	bool SearchCycles(t_vector::iterator);
+	bool _SearchCycles(t_vector::iterator);
 	t_vector LogVecLast;
-public:
-	static void copy(LogCirc &a, LogCirc &b)
-	{
-		a.Last = b.Last;
-		a.Next = b.Next;
-		a.LogVecLast = b.LogVecLast;
-	}
-	void PrintGraph();
-	long numLastPort();
-	long numNextPort();
+	long numLastPortRefresh();
+	long numNextPortRefresh();
 	void clear();
+public:
+	void PrintGraph(std::string tabs);
     void run ();
 	void run (const LogVect &v);
 	inline void addGate(LogGateHand &h)
 	{
 		LogVecLast.push_back(Graph(h));
-		numLastPort();
-		numNextPort();
+		numNextPortRefresh();
+		numLastPortRefresh();
 	}
 	inline void addGate(int type)
 	{
 		LogGateHand tmp = LogFact::NewGate(type);
 		LogVecLast.push_back(Graph(tmp));
-		numLastPort();
-		numNextPort();
+		numNextPortRefresh();
+		numLastPortRefresh();
 	}
-	void bind(int entrance, int exit, std::vector<int> entrance_ports);
 	void bind(int entrance, int exit);
+	void bind(int entrance, int exit, int port, ...);
 	void unbind(int entrance, int exit);
+	void unbind(int entrance, int exit, int port, ...);
 	void del(int entrance);
 	inline long size(){return LogVecLast.size();}
 };
